@@ -12,12 +12,13 @@ type Album struct {
     ID     string  `json:"id"`
     Title  string  `json:"title"`
     Artist string  `json:"artist"`
+    Price  float64 `json:"price"`
 }
 
 // albums slice to seed record album data.
 var albums = []Album{
-    {ID: "1", Title: "Album One", Artist: "Artist One"},
-    {ID: "2", Title: "Album Two", Artist: "Artist Two"},
+    {ID: "1", Title: "Album One", Artist: "Artist One", Price: 10.00},
+    {ID: "2", Title: "Album Two", Artist: "Artist Two", Price: 20.00},
 }
 
 // GetAlbums retrieves the list of albums
