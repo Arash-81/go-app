@@ -1,0 +1,84 @@
+name: 'CICD Workflow'
+
+on:
+  push:
+    branches:
+      - main  # Trigger only on pushes to the `main` branch
+  pull_request:  # Trigger on pull requests
+    branches:
+      - '**'
+
+jobs:
+  main_workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # Step 2:
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+     
+      - name: Confirm git commit SHA output
+        run: echo ${{ env.COMMIT_SHORT_SHA }}
+
+      # Step 3: Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.4 
+
+      # Step 4: Build Go project
+      - name: Build the project
+        run: |
+          echo "Building project..."
+          go build -o app .
+
+      # Step 5: Run tests
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          go test ./...
+      # Step 6:
+      - name: Build & Push Image
+        run: |
+          echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u "${{secrets.DOCKERHUB_USERNAME}}" --password-stdin
+          docker image build -t arashgh/uni-project:${{ env.COMMIT_SHORT_SHA }} .
+          docker push arashgh/uni-project:${{ env.COMMIT_SHORT_SHA }}
+      # Step 7:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'arashgh/uni-project:${{ env.COMMIT_SHORT_SHA }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+      # Step 8:
+      - name: Checkout private repo
+        uses: actions/checkout@v3
+        with:
+          repository: Arash-81/k8s-manifests
+          token: ${{ secrets.GIT_TOKEN }}
+          path: manifest-repo
+      # Step 9:
+      - name: Update Kubernetes manifest
+        run: |
+          echo "Updating Kubernetes manifest..."
+          sed -i "s|image: arashgh/uni-project:.*|image: arashgh/uni-project:${{ env.COMMIT_SHORT_SHA }}|g" manifest-repo/go-app/manifest.yaml
+      # Step 10:
+      - name: Commit and push changes
+        run: |
+          cd manifest-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update image tag to arashgh/uni-project:${{ env.COMMIT_SHORT_SHA }}"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
