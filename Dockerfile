@@ -1,5 +1,4 @@
-# FROM golang:1.20.3-bullseye
-FROM golang:1.23.4-bullseye as builder
+FROM golang:1.23.5-bullseye as builder
 # Set the Working Directory inside the container
 WORKDIR /go/src/app
 
