@@ -17,8 +17,10 @@ func main() {
     // Middleware to track status codes
     router.Use(func(c *gin.Context) {
         c.Next()
-        statusCode := strconv.Itoa(c.Writer.Status())
-        metrics.RequestCounter.WithLabelValues(c.Request.Method, c.FullPath(), statusCode).Inc()
+        if c.FullPath() != "/metrics" {
+            statusCode := strconv.Itoa(c.Writer.Status())
+            metrics.RequestCounter.WithLabelValues(c.Request.Method, c.FullPath(), statusCode).Inc()
+        }
     })
 
     router.GET("/albums", albums.GetAlbums)

@@ -2,6 +2,7 @@ package albums
 
 import (
     "net/http"
+    "strconv"
 
     "github.com/gin-gonic/gin"
     "github.com/Arash-81/go-app/src/metrics"
@@ -23,7 +24,8 @@ var albums = []Album{
 
 // GetAlbums retrieves the list of albums
 func GetAlbums(c *gin.Context) {
-    metrics.RequestCounter.WithLabelValues("GET", "/albums").Inc()
+    statusCode := strconv.Itoa(http.StatusOK)
+    metrics.RequestCounter.WithLabelValues("GET", "/albums", statusCode).Inc()
     c.IndentedJSON(http.StatusOK, albums)
 }
 
@@ -33,12 +35,14 @@ func PostAlbums(c *gin.Context) {
 
     // Call BindJSON to bind the received JSON to newAlbum.
     if err := c.BindJSON(&newAlbum); err != nil {
-        metrics.RequestCounter.WithLabelValues("POST", "/albums").Inc()
+        statusCode := strconv.Itoa(http.StatusBadRequest)
+        metrics.RequestCounter.WithLabelValues("POST", "/albums", statusCode).Inc()
         c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
         return
     }
 
     albums = append(albums, newAlbum)
-    metrics.RequestCounter.WithLabelValues("POST", "/albums").Inc()
+    statusCode := strconv.Itoa(http.StatusCreated)
+    metrics.RequestCounter.WithLabelValues("POST", "/albums", statusCode).Inc()
     c.JSON(http.StatusCreated, newAlbum)
 }
