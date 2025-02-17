@@ -3,6 +3,7 @@ package main
 import (
     "log"
     "strconv"
+    "net/http"
 
     "github.com/gin-gonic/gin"
     "github.com/prometheus/client_golang/prometheus/promhttp"
@@ -25,6 +26,11 @@ func main() {
 
     router.GET("/albums", albums.GetAlbums)
     router.POST("/albums", albums.PostAlbums)
+
+    // Route to return a 500 status code for testing
+    router.GET("/error", func(c *gin.Context) {
+        c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+    })
 
     // Prometheus metrics endpoint
     router.GET("/metrics", gin.WrapH(promhttp.Handler()))
