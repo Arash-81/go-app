@@ -2,6 +2,7 @@ package main
 
 import (
     "log"
+    "strconv"
 
     "github.com/gin-gonic/gin"
     "github.com/prometheus/client_golang/prometheus/promhttp"
@@ -16,7 +17,8 @@ func main() {
     // Middleware to track status codes
     router.Use(func(c *gin.Context) {
         c.Next()
-        metrics.RequestCounter.WithLabelValues(c.Request.Method, c.FullPath()).Inc()
+        statusCode := strconv.Itoa(c.Writer.Status())
+        metrics.RequestCounter.WithLabelValues(c.Request.Method, c.FullPath(), statusCode).Inc()
     })
 
     router.GET("/albums", albums.GetAlbums)

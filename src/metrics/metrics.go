@@ -10,7 +10,7 @@ var (
             Name: "http_requests_total",
             Help: "Total number of HTTP requests by method and endpoint",
         },
-        []string{"method", "endpoint"},
+        []string{"method", "endpoint", "status_code"},
     )
 )
 
