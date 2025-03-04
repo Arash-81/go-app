@@ -32,6 +32,11 @@ func main() {
         c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
     })
 
+    // Route to return a 200 status code for testing
+    router.GET("/success", func(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{"message": "Success"})
+    })
+
     // Prometheus metrics endpoint
     router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
